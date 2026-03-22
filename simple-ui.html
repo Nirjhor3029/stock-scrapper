@@ -369,7 +369,7 @@
             counterDiv.style.display = 'block';
             
             // Create EventSource connection
-            eventSource = new EventSource(`${API_BASE}/scrape/stream`);
+            eventSource = new EventSource(`${API_BASE}/api/stocks/scrape/stream`);
             
             // Handle stock events
             eventSource.addEventListener('stock', function(event) {
@@ -510,7 +510,7 @@
             historyContent.innerHTML = '<p>Loading...</p>';
             historySection.style.display = 'block';
             
-            fetch(`${API_BASE}/stock/${stockCode}/history?days=30`)
+            fetch(`${API_BASE}/api/stocks/${stockCode}/history?days=30`)
                 .then(response => response.json())
                 .then(data => {
                     if (!data.success) {
