@@ -373,7 +373,8 @@
             
             // Handle stock events
             eventSource.addEventListener('stock', function(event) {
-                const stock = JSON.parse(event.data);
+                const payload = JSON.parse(event.data);
+                const stock = payload.data;
                 addStockToTable(stock);
                 stockCount++;
                 counterDiv.textContent = `${stockCount} stocks`;
@@ -381,7 +382,8 @@
             
             // Handle progress events
             eventSource.addEventListener('progress', function(event) {
-                const progress = JSON.parse(event.data);
+                const payload = JSON.parse(event.data);
+                const progress = payload.data;
                 updateProgress(progress);
             });
             
