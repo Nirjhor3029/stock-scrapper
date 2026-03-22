@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSE Scraper - Simple UI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .scrap-button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        .scrap-button:hover {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        .scrap-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .status {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 20px;
+        }
+        .status.idle { background: #ecf0f1; }
+        .status.scraping { background: #f1c40f; color: #2c3e50; }
+        .status.completed { background: #2ecc71; color: white; }
+        .status.error { background: #e74c3c; color: white; }
+        
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .progress-text {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #34495e;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        tr:hover {
+            background: #e3f2fd;
+        }
+        .stock-code {
+            font-weight: bold;
+            color: #3498db;
+        }
+        .price {
+            font-family: 'Courier New', monospace;
+        }
+        .positive { color: #27ae60; }
+        .negative { color: #c0392b; }
+        .neutral { color: #7f8c8d; }
+        
+        .summary {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        .summary h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .first-stock {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        #historySection {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        #historyTitle {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        #historyContent {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .history-table th {
+            background: #34495e;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        .history-table td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .history-table tr:hover {
+            background: #e3f2fd;
+        }
+        .history-table .date-col {
+            width: 120px;
+            font-weight: bold;
+        }
+        .history-table .price-col {
+            font-family: 'Courier New', monospace;
+        }
+        
+        .counter {
+            text-align: center;
+            font-size: 24px;
+            color: #3498db;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DSE Stock Scraper</h1>
+        <p class="subtitle">Real-time streaming of Dhaka Stock Exchange data</p>
+        
+        <div class="controls">
+            <button id="scrapButton" class="scrap-button">Scrap DSE</button>
+        </div>
+        
+        <div id="status" class="status idle">Ready to scrape</div>
+        
+        <div id="progressContainer" class="progress-container">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <div id="progressText" class="progress-text">Waiting to start...</div>
+        </div>
+        
+        <div id="counter" class="counter" style="display: none;">0 stocks</div>
+        
+        <div id="errorMessage" class="error-message"></div>
+        
+        <div id="tableContainer" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Trading Code</th>
+                        <th>LTP*</th>
+                        <th>HIGH</th>
+                        <th>LOW</th>
+                        <th>CLOSEP*</th>
+                        <th>YCP*</th>
+                        <th>CHANGE</th>
+                        <th>TRADE</th>
+                        <th>VALUE (mn)</th>
+                        <th>VOLUME</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="summary" class="summary">
+            <h3>Scraping Summary</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Total Stocks</div>
+                    <div id="summaryTotal" class="summary-value">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Time Taken</div>
+                    <div id="summaryTime" class="summary-value">0.00 seconds</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Stocks per Second</div>
+                    <div id="summarySpeed" class="summary-value">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Completed At</div>
+                    <div id="summaryTimeComplete" class="summary-value">-</div>
+                </div>
+            </div>
+            
+            <div id="firstStock" class="first-stock" style="display: none;">
+                <h4>First Stock Scraped</h4>
+                <p><strong>Code:</strong> <span id="firstStockCode">-</span></p>
+                <p><strong>LTP:</strong> <span id="firstStockLtp">-</span></p>
+            </div>
+        </div>
+        
+        <div id="historySection" style="display: none; margin-top: 30px;">
+            <h3 id="historyTitle">Historical Data</h3>
+            <div id="historyContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const scrapButton = document.getElementById('scrapButton');
+        const statusDiv = document.getElementById('status');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const tableContainer = document.getElementById('tableContainer');
+        const tableBody = document.getElementById('tableBody');
+        const counterDiv = document.getElementById('counter');
+        const errorMessage = document.getElementById('errorMessage');
+        const summaryDiv = document.getElementById('summary');
+        
+        let eventSource = null;
+        let stockCount = 0;
+        let startTime = 0;
+        
+        // Initialize
+        window.onload = function() {
+            resetUI();
+        };
+        
+        function resetUI() {
+            scrapButton.disabled = false;
+            statusDiv.className = 'status idle';
+            statusDiv.textContent = 'Ready to scrape';
+            progressContainer.style.display = 'none';
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Waiting to start...';
+            tableContainer.style.display = 'none';
+            tableBody.innerHTML = '';
+            counterDiv.style.display = 'none';
+            errorMessage.style.display = 'none';
+            summaryDiv.style.display = 'none';
+            stockCount = 0;
+            counterDiv.textContent = '0 stocks';
+        }
+        
+        function startScraping() {
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            resetUI();
+            startTime = Date.now();
+            
+            // Update UI
+            scrapButton.disabled = true;
+            statusDiv.className = 'status scraping';
+            statusDiv.textContent = 'Scraping started...';
+            progressContainer.style.display = 'block';
+            tableContainer.style.display = 'block';
+            counterDiv.style.display = 'block';
+            
+            // Create EventSource connection
+            eventSource = new EventSource(`${API_BASE}/scrape/stream`);
+            
+            // Handle stock events
+            eventSource.addEventListener('stock', function(event) {
+                const stock = JSON.parse(event.data);
+                addStockToTable(stock);
+                stockCount++;
+                counterDiv.textContent = `${stockCount} stocks`;
+            });
+            
+            // Handle progress events
+            eventSource.addEventListener('progress', function(event) {
+                const progress = JSON.parse(event.data);
+                updateProgress(progress);
+            });
+            
+            // Handle summary events
+            eventSource.addEventListener('summary', function(event) {
+                const summary = JSON.parse(event.data);
+                showSummary(summary);
+            });
+            
+            // Handle error events
+            eventSource.addEventListener('error', function(event) {
+                const error = JSON.parse(event.data);
+                showError(error.message);
+            });
+            
+            // Handle connection errors
+            eventSource.onerror = function(event) {
+                if (eventSource.readyState === EventSource.CLOSED) {
+                    showError('Connection closed');
+                } else {
+                    showError('Connection error. Please try again.');
+                }
+                stopScraping();
+            };
+        }
+        
+        function stopScraping() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            scrapButton.disabled = false;
+        }
+        
+        function addStockToTable(stock) {
+            const row = document.createElement('tr');
+            const change = parseFloat(stock['CHANGE'] || 0);
+            const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : 'neutral';
+            const stockCode = stock['TRADING CODE'] || '';
+            
+            row.innerHTML = `
+                <td>${stockCount + 1}</td>
+                <td class="stock-code">${stockCode}</td>
+                <td class="price">${stock['LTP*'] || ''}</td>
+                <td class="price">${stock['HIGH'] || ''}</td>
+                <td class="price">${stock['LOW'] || ''}</td>
+                <td class="price">${stock['CLOSEP*'] || ''}</td>
+                <td class="price">${stock['YCP*'] || ''}</td>
+                <td class="price ${changeClass}">${stock['CHANGE'] || ''}</td>
+                <td>${stock['TRADE'] || ''}</td>
+                <td>${stock['VALUE (mn)'] || ''}</td>
+                <td>${stock['VOLUME'] || ''}</td>
+            `;
+            
+            // Make row clickable to show history
+            row.style.cursor = 'pointer';
+            row.title = 'Click to view historical data';
+            row.addEventListener('click', () => {
+                showHistory(stockCode);
+            });
+            
+            tableBody.appendChild(row);
+            
+            // Scroll to bottom
+            tableContainer.scrollTop = tableContainer.scrollHeight;
+        }
+        
+        function updateProgress(progress) {
+            const percentage = progress.total > 0 ? (progress.processed / progress.total) * 100 : 0;
+            progressFill.style.width = `${percentage}%`;
+            progressText.textContent = progress.message;
+            
+            statusDiv.textContent = `Scraping: ${progress.processed} of ${progress.total} stocks`;
+        }
+        
+        function showSummary(summary) {
+            stopScraping();
+            
+            // Calculate speed
+            const speed = summary.durationSeconds > 0 ? 
+                (summary.totalStocks / summary.durationSeconds).toFixed(1) : 0;
+            
+            // Update summary
+            document.getElementById('summaryTotal').textContent = summary.totalStocks;
+            document.getElementById('summaryTime').textContent = `${summary.durationSeconds} seconds`;
+            document.getElementById('summarySpeed').textContent = `${speed} stocks/sec`;
+            document.getElementById('summaryTimeComplete').textContent = 
+                new Date().toLocaleTimeString();
+            
+            // Show first stock info
+            if (summary.firstStock) {
+                document.getElementById('firstStockCode').textContent = summary.firstStock.tradingCode;
+                document.getElementById('firstStockLtp').textContent = summary.firstStock.ltp;
+                document.getElementById('firstStock').style.display = 'block';
+            }
+            
+            // Update status
+            statusDiv.className = 'status completed';
+            statusDiv.textContent = summary.message;
+            
+            // Show summary
+            summaryDiv.style.display = 'block';
+            
+            // Update final count
+            counterDiv.textContent = `${summary.totalStocks} stocks (completed)`;
+        }
+        
+        function showError(message) {
+            stopScraping();
+            
+            errorMessage.textContent = `Error: ${message}`;
+            errorMessage.style.display = 'block';
+            
+            statusDiv.className = 'status error';
+            statusDiv.textContent = 'Scraping failed';
+            
+            progressContainer.style.display = 'none';
+        }
+        
+        function showHistory(stockCode) {
+            const historySection = document.getElementById('historySection');
+            const historyTitle = document.getElementById('historyTitle');
+            const historyContent = document.getElementById('historyContent');
+            
+            historyTitle.textContent = `Historical Data for ${stockCode}`;
+            historyContent.innerHTML = '<p>Loading...</p>';
+            historySection.style.display = 'block';
+            
+            fetch(`${API_BASE}/stock/${stockCode}/history?days=30`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        historyContent.innerHTML = `<p style="color: red;">Error: ${data.message}</p>`;
+                        return;
+                    }
+                    
+                    if (data.data.length === 0) {
+                        historyContent.innerHTML = '<p>No historical data found for this stock.</p>';
+                        return;
+                    }
+                    
+                    // Build history table
+                    let html = `
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th class="date-col">Date</th>
+                                    <th class="price-col">LTP</th>
+                                    <th class="price-col">HIGH</th>
+                                    <th class="price-col">LOW</th>
+                                    <th class="price-col">CLOSEP</th>
+                                    <th class="price-col">CHANGE</th>
+                                    <th>VOLUME</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    data.data.forEach(item => {
+                        const date = new Date(item.date).toLocaleDateString();
+                        const d = item.data;
+                        html += `
+                            <tr>
+                                <td class="date-col">${date}</td>
+                                <td class="price-col">${d.LTP || '-'}</td>
+                                <td class="price-col">${d.HIGH || '-'}</td>
+                                <td class="price-col">${d.LOW || '-'}</td>
+                                <td class="price-col">${d.CLOSEP || '-'}</td>
+                                <td class="price-col">${d.CHANGE || '-'}</td>
+                                <td>${d.VOLUME || '-'}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    historyContent.innerHTML = html;
+                })
+                .catch(err => {
+                    historyContent.innerHTML = `<p style="color: red;">Failed to fetch history: ${err.message}</p>`;
+                });
+        }
+        
+        // Event listeners
+        scrapButton.addEventListener('click', startScraping);
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
+    </script>
+</body>
+</html>
