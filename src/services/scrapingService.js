@@ -9,6 +9,25 @@ class ScrapingService {
     this.userAgent = config.dse.userAgent;
   }
 
+  // Convert string values to appropriate types
+  convertValue(value, header) {
+    if (!value || value === '') return null;
+    
+    // Handle numeric fields (remove commas, convert to number)
+    const numericFields = ['LTP*', 'HIGH', 'LOW', 'CLOSEP*', 'YCP*', 'CHANGE', 
+                          'TRADE', 'VALUE (mn)', 'VOLUME', '#'];
+    
+    if (numericFields.includes(header)) {
+      // Remove commas and convert to number
+      const cleaned = value.replace(/,/g, '');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? value : num;
+    }
+    
+    // TRADING CODE and other text fields stay as strings
+    return value;
+  }
+
   async scrapeDSEData() {
     try {
       logger.info('Starting to scrape DSE data...');

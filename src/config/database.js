@@ -9,6 +9,9 @@ const connectDB = async () => {
     
     logger.info('MongoDB connected successfully');
     
+    // Ensure indexes are created
+    await ensureIndexes();
+    
     mongoose.connection.on('error', (err) => {
       logger.error('MongoDB connection error:', err);
     });
@@ -27,6 +30,29 @@ const connectDB = async () => {
   } catch (error) {
     logger.error('Failed to connect to MongoDB:', error);
     process.exit(1);
+  }
+};
+
+// Ensure all indexes are created for professional schema
+const ensureIndexes = async () => {
+  try {
+    // Import models to ensure they're registered
+    require('../models/StockMetadata');
+    require('../models/StockPrice');
+    
+    // Create indexes for StockMetadata
+    const StockMetadata = mongoose.model('StockMetadata');
+    await StockMetadata.createIndexes();
+    logger.info('StockMetadata indexes created');
+    
+    // Create indexes for StockPrice
+    const StockPrice = mongoose.model('StockPrice');
+    await StockPrice.createIndexes();
+    logger.info('StockPrice indexes created');
+    
+  } catch (error) {
+    logger.warn('Error ensuring indexes:', error.message);
+    // Don't throw error, as indexes might already exist
   }
 };
 

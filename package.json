@@ -10,7 +10,9 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix"
+    "lint:fix": "eslint src/ --fix",
+    "migrate": "node migrate-to-professional-schema.js",
+    "migrate:check": "node -e \"require('./migrate-to-professional-schema.js')\""
   },
   "keywords": [
     "dse",

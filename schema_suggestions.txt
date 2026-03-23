@@ -1,0 +1,141 @@
+🧠 Professional MongoDB Design (Recommended)
+✅ Option 1 (Best Practice for Your Case)
+🔹 1. Separate Collections (Logical Separation)
+stocks (metadata)
+{
+  _id: ObjectId,
+  code: "BRACBANK",
+  name: "BRAC Bank PLC",
+  sector: "Bank",
+  createdAt,
+  updatedAt
+}
+stock_prices (time-series data)
+{
+  _id: ObjectId,
+  stockId: ObjectId,   // reference to stocks
+  date: ISODate,
+  
+  // numeric fields (IMPORTANT)
+  ltp: 75.3,
+  high: 76.9,
+  low: 74.9,
+  close: 75.3,
+  ycp: 75.6,
+  change: -0.3,
+  
+  trade: 2332,
+  value: 132.0850,
+  volume: 1753108,
+
+  scrapedAt: Date
+}
+🎯 Why this is better?
+1. Data Type Correctness (CRITICAL)
+
+তুমি এখন:
+
+"LTP": "75.3" ❌
+
+Professional:
+
+ltp: 75.3 ✅
+
+👉 এতে:
+
+aggregation fast
+sorting correct
+indicators (RSI, MA) easy
+2. Separation of Concerns
+Data Type	Collection
+Static (name, sector)	stocks
+Dynamic (daily price)	stock_prices
+
+👉 SQL-এর মতোই, কিন্তু controlled reference (not heavy join)
+
+3. Scalability (VERY IMPORTANT)
+
+তোমার calculation:
+
+400 stocks × 365 days = 146,000 docs/year
+
+5 years:
+
+~700K+ documents
+
+👉 MongoDB easily handles this
+
+4. Index Strategy (Production Level)
+db.stock_prices.createIndex({ stockId: 1, date: -1 }, { unique: true })
+db.stock_prices.createIndex({ date: -1 })
+5. Query Efficiency
+Last 30 days:
+db.stock_prices.find({
+  stockId,
+  date: { $gte: last30 }
+})
+Latest price:
+db.stock_prices.findOne({ stockId }).sort({ date: -1 })
+🚀 Option 2 (Advanced / High Performance)
+
+If you go SaaS / heavy analytics:
+
+👉 Use bucket pattern
+
+{
+  stockId: ObjectId,
+  year: 2026,
+  prices: [
+    { date: ..., ltp: ..., volume: ... },
+    { date: ..., ltp: ..., volume: ... }
+  ]
+}
+
+✔ fewer documents
+✔ faster reads
+
+❌ more complex updates
+
+👉 MVP এর জন্য NOT recommended
+
+❌ Common Mistakes (You are doing some)
+1. ❌ String সংখ্যা রাখা
+
+Fix immediately.
+
+2. ❌ Duplicate TRADING_CODE
+
+Already have stockCode
+
+3. ❌ Unstructured data object
+
+Instead of:
+
+data: { LTP: "...", HIGH: "..." }
+
+Use flat:
+
+ltp, high, low
+
+👉 indexable + faster
+
+🧩 Hybrid Approach (Best Practical Setup)
+
+তোমার case এ ideal হবে:
+
+✅ Keep:
+One document per stock per day
+✅ Improve:
+numeric conversion
+split metadata
+clean schema
+📊 Final Recommendation (Straight Answer)
+
+👉 তোমার project এর জন্য best practice:
+
+✅ Two collections (stocks + stock_prices)
+✅ One document per stock per day
+✅ All numeric fields as numbers (NOT string)
+✅ Compound index (stockId + date)
+❌ No heavy embedding
+❌ No giant arrays

@@ -46,7 +46,7 @@ class StockService {
         
         // Add any extra fields that appear in stock object
         Object.keys(stock).forEach(key => {
-          if (!doc.data.hasOwnProperty(key)) {
+          if (!Object.prototype.hasOwnProperty.call(doc.data, key)) {
             doc.data[key] = stock[key];
           }
         });

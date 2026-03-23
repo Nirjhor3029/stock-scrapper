@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const stockController = require('../controllers/stockController');
 const scrapingService = require('../services/scrapingService');
-const stockService = require('../services/stockService');
+const stockService = require('../services/professionalStockService');
 const logger = require('../utils/logger');
 
 console.log('Loading stock routes...');

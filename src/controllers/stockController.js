@@ -1,5 +1,5 @@
 const scrapingService = require('../services/scrapingService');
-const stockService = require('../services/stockService');
+const stockService = require('../services/professionalStockService');
 const config = require('../config');
 const logger = require('../utils/logger');
 
