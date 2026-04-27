@@ -1,0 +1,11 @@
+### ⚠️ Issues
+1. **No Automatic Scheduling**: No cron job for daily scraping
+2. **Dual Storage**: Saves to both legacy AND professional schemas (redundant)
+3. **No Trader Hours Check**: May scrape outside trading hours
+4. **No Error Handling for Weekends**: DSE closed on Friday/Saturday
+
+ok lets ork on issues then.
+1. skip for now
+2. only use professional schemas remove legacy cody but check dependencies 1st
+3. add configurations for trader hours in .env
+4. error handling for weekends . do this too

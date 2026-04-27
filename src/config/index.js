@@ -13,6 +13,13 @@ const config = {
   cache: {
     durationMinutes: parseInt(process.env.CACHE_DURATION_MINUTES, 10) || 5,
   },
+  trading: {
+    startHour: parseInt(process.env.TRADING_START_HOUR, 10) || 10,
+    startMinute: parseInt(process.env.TRADING_START_MINUTE, 10) || 0,
+    endHour: parseInt(process.env.TRADING_END_HOUR, 10) || 14,
+    endMinute: parseInt(process.env.TRADING_END_MINUTE, 10) || 45,
+    days: (process.env.TRADING_DAYS || '0,1,2,3,4').split(',').map(d => parseInt(d, 10)),
+  },
   logging: {
     level: process.env.LOG_LEVEL || 'info',
   },

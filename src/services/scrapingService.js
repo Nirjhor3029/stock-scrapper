@@ -2,6 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const config = require('../config');
 const logger = require('../utils/logger');
+const { isTradingDay, isTradingHours, isTradingOpen } = require('../utils/tradingHours');
 
 class ScrapingService {
   constructor() {
@@ -9,26 +10,24 @@ class ScrapingService {
     this.userAgent = config.dse.userAgent;
   }
 
-  // Convert string values to appropriate types
-  convertValue(value, header) {
-    if (!value || value === '') return null;
-    
-    // Handle numeric fields (remove commas, convert to number)
-    const numericFields = ['LTP*', 'HIGH', 'LOW', 'CLOSEP*', 'YCP*', 'CHANGE', 
-                          'TRADE', 'VALUE (mn)', 'VOLUME', '#'];
-    
-    if (numericFields.includes(header)) {
-      // Remove commas and convert to number
-      const cleaned = value.replace(/,/g, '');
-      const num = parseFloat(cleaned);
-      return isNaN(num) ? value : num;
+  canScrape() {
+    if (!isTradingDay()) {
+      logger.info('Skipping scrape: Today is not a trading day');
+      return false;
     }
-    
-    // TRADING CODE and other text fields stay as strings
-    return value;
+    if (!isTradingHours()) {
+      logger.info('Skipping scrape: Outside trading hours');
+      return false;
+    }
+    return true;
   }
 
   async scrapeDSEData() {
+    if (!this.canScrape()) {
+      logger.info('Skipping scrape: Market is closed');
+      return [];
+    }
+    
     try {
       logger.info('Starting to scrape DSE data...');
       
@@ -99,6 +98,11 @@ class ScrapingService {
   }
 
   async scrapeWithStream() {
+    if (!this.canScrape()) {
+      logger.info('Streaming scrape skipped: Market is closed');
+      return [];
+    }
+    
     try {
       logger.info('Starting streaming scrape of DSE data...');
       
