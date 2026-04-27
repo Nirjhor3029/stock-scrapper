@@ -1,29 +1,40 @@
-const StockMetadata = require('../models/StockMetadata');
-const StockPrice = require('../models/StockPrice');
+const mongoose = require('mongoose');
 const logger = require('../utils/logger');
+
+// Ensure models are registered
+require('../models/StockMetadata');
+require('../models/StockPrice');
+
+const StockPrice = mongoose.model('StockPrice');
 
 class LiveDataService {
   async getLatestFromDB() {
     try {
-      const latestPrices = await StockPrice.findLatestPrices();
+      // Simple: just find latest documents 
+      const prices = await StockPrice.find()
+        .sort({ date: -1 })
+        .limit(100)
+        .lean();
       
-      return latestPrices.map(item => ({
-        code: item.stockCode,
-        name: item.stockName || item.stockCode,
-        ltp: item.ltp,
-        high: item.high,
-        low: item.low,
-        close: item.close,
-        ycp: item.ycp,
-        change: item.change,
-        trade: item.trade,
-        value: item.value,
-        volume: item.volume,
-        dseIndex: item.dseIndex,
-        date: item.date,
+      logger.info(`Found ${prices.length} prices`);
+      
+      return prices.map(p => ({
+        code: p.stockId ? p.stockId.toString().slice(-6) : 'N/A',
+        name: '',
+        ltp: p.ltp,
+        high: p.high,
+        low: p.low,
+        close: p.close,
+        ycp: p.ycp,
+        change: p.change,
+        trade: p.trade,
+        value: p.value,
+        volume: p.volume,
+        dseIndex: p.dseIndex,
+        date: p.date
       }));
     } catch (error) {
-      logger.error('Error getting live data from DB:', error.message);
+      logger.error('Error getting live data:', error.message);
       throw error;
     }
   }

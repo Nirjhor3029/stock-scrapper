@@ -1,1 +1,0 @@
-http://localhost:3000/ eikhane gele html page load hoye jacche. kintu data load hocche na 'Loading data...' emon dekhay ar spinner dekhay

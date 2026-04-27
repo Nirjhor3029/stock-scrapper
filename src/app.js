@@ -12,36 +12,26 @@ const liveDataRoutes = require('./routes/liveDataRoutes');
 
 const path = require('path');
 
-// Import middleware
 const app = express();
 
-// Security middleware
 app.use(helmet());
-
-// CORS middleware
 app.use(cors());
-
-// Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Logging middleware
 app.use(morgan('combined', {
   stream: {
     write: (message) => logger.info(message.trim()),
   },
 }));
 
-// Request ID middleware (optional)
 app.use((req, res, next) => {
   req.requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);
   next();
 });
 
-// Serve static files from public directory
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
@@ -50,7 +40,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API documentation endpoint
 app.get('/api', (req, res) => {
   res.json({
     message: 'DSE Stock Data Scraper API',
@@ -76,37 +65,33 @@ app.get('/api', (req, res) => {
       cron: {
         scrape: 'POST /api/cron/scrape',
       },
+      live: {
+        data: 'GET /api/live',
+      },
     },
   });
 });
 
-// Favicon handler (prevent 404 errors)
 app.get('/favicon.ico', (req, res) => {
   res.status(204).end();
 });
 
-// API routes
 app.use('/api/stocks', stockRoutes);
 console.log('Stock routes registered at /api/stocks');
 
-// Cron routes (for Vercel cron jobs)
 app.use('/api/cron', cronRoutes);
 console.log('Cron routes registered at /api/cron');
 
-// Local scheduler routes
 app.use('/api/scheduler', schedulerRoutes);
 console.log('Scheduler routes registered at /api/scheduler');
 
-// Live data routes (from MongoDB)
 app.use('/api/live', liveDataRoutes);
 console.log('Live data routes registered at /api/live');
 
-// Root endpoint - serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Error handling
 app.use(notFound);
 app.use(errorHandler);
 
