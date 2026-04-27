@@ -8,6 +8,9 @@ const { notFound, errorHandler } = require('./middlewares/errorMiddleware');
 const stockRoutes = require('./routes/stockRoutes');
 const cronRoutes = require('./routes/cronRoutes');
 const schedulerRoutes = require('./routes/schedulerRoutes');
+const liveDataRoutes = require('./routes/liveDataRoutes');
+
+const path = require('path');
 
 // Import middleware
 const app = express();
@@ -34,6 +37,9 @@ app.use((req, res, next) => {
   req.requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);
   next();
 });
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -91,9 +97,13 @@ console.log('Cron routes registered at /api/cron');
 app.use('/api/scheduler', schedulerRoutes);
 console.log('Scheduler routes registered at /api/scheduler');
 
-// Root endpoint
+// Live data routes (from MongoDB)
+app.use('/api/live', liveDataRoutes);
+console.log('Live data routes registered at /api/live');
+
+// Root endpoint - serve index.html
 app.get('/', (req, res) => {
-  res.redirect('/api');
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Error handling
