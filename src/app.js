@@ -65,6 +65,11 @@ app.get('/api', (req, res) => {
   });
 });
 
+// Favicon handler (prevent 404 errors)
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
+
 // API routes
 app.use('/api/stocks', stockRoutes);
 console.log('Stock routes registered at /api/stocks');
