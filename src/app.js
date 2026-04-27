@@ -6,6 +6,8 @@ const config = require('./config');
 const logger = require('./utils/logger');
 const { notFound, errorHandler } = require('./middlewares/errorMiddleware');
 const stockRoutes = require('./routes/stockRoutes');
+const cronRoutes = require('./routes/cronRoutes');
+const schedulerRoutes = require('./routes/schedulerRoutes');
 
 // Import middleware
 const app = express();
@@ -55,11 +57,18 @@ app.get('/api', (req, res) => {
         getLiveData: 'GET /api/stocks/live',
         json: 'GET /api/stocks/json',
         csv: 'GET /api/stocks/csv',
-        downloadJson: 'GET /api/stocks/download/json',
-        downloadCsv: 'GET /api/stocks/download/csv',
         historicalData: 'GET /api/stocks/:code/history',
         status: 'GET /api/stocks/status',
         stream: 'GET /api/stocks/scrape/stream',
+      },
+      scheduler: {
+        start: 'GET /api/scheduler/start?minutes=5',
+        stop: 'GET /api/scheduler/stop',
+        status: 'GET /api/scheduler/status',
+        runOnce: 'GET /api/scheduler/run',
+      },
+      cron: {
+        scrape: 'POST /api/cron/scrape',
       },
     },
   });
@@ -73,6 +82,14 @@ app.get('/favicon.ico', (req, res) => {
 // API routes
 app.use('/api/stocks', stockRoutes);
 console.log('Stock routes registered at /api/stocks');
+
+// Cron routes (for Vercel cron jobs)
+app.use('/api/cron', cronRoutes);
+console.log('Cron routes registered at /api/cron');
+
+// Local scheduler routes
+app.use('/api/scheduler', schedulerRoutes);
+console.log('Scheduler routes registered at /api/scheduler');
 
 // Root endpoint
 app.get('/', (req, res) => {

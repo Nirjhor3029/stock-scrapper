@@ -1,0 +1,36 @@
+Short answer: না, এইভাবে node-cron ব্যবহার করে Vercel-এ 5 মিনিট পরপর scraping চালানো যাবে না।
+
+এখানে মূল সমস্যা হচ্ছে Vercel-এর execution model 👇
+
+❌ কেন node-cron Vercel-এ কাজ করবে না
+
+Vercel serverless architecture ব্যবহার করে, যার মানে:
+
+আপনার Node.js app always-running process না
+প্রতিটা request এ function run হয় → কাজ শেষ → shutdown
+background job / cron daemon চালিয়ে রাখার সুযোগ নাই
+
+👉 তাই node-cron (যেটা continuous process দরকার) এখানে ineffective।
+
+✅ Vercel-এ সঠিক উপায় (Recommended)
+1. Vercel Cron Jobs (Best Option)
+
+Vercel নিজেই built-in cron support দেয়
+
+📌 কীভাবে কাজ করবে:
+
+আপনি একটা API route বানাবেন (যেমন: /api/scrape)
+তারপর Vercel config (vercel.json) এ cron define করবেন
+{
+  "crons": [
+    {
+      "path": "/api/scrape",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}
+
+👉 তারপর:
+
+প্রতি 5 মিনিটে Vercel ওই API hit করবে
+আপনার scraping logic ওই API handler এর ভিতরে থাকবে
