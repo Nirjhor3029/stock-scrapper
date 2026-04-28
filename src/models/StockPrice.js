@@ -13,6 +13,10 @@ const stockPriceSchema = new mongoose.Schema({
     index: true,
   },
   // Core price data (numeric for analysis)
+  open: {
+    type: Number,
+    default: 0,
+  },
   ltp: {
     type: Number,
     default: 0,

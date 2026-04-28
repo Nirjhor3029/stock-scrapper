@@ -52,7 +52,13 @@ class ProfessionalStockService {
             logger.info(`Created new stock metadata for ${stockCode}`);
           }
           
-          // 2. Prepare price data with numeric conversion
+          // 2. Check if this is the first scrape of the day
+          const existingPrice = await StockPrice.findOne({
+            stockId: stockMetadata._id,
+            date: bangladeshDate
+          });
+          
+          // 3. Prepare price data with numeric conversion
           const priceData = {
             stockId: stockMetadata._id,
             date: bangladeshDate,
@@ -70,7 +76,17 @@ class ProfessionalStockService {
             rawData: stock, // Store original raw data for debugging
           };
           
-          // 3. Upsert price data
+          // 4. Set open price: first scrape = ltp, otherwise preserve existing open
+          if (!existingPrice) {
+            // First scrape of the day - set open = ltp
+            priceData.open = priceData.ltp;
+            logger.debug(`First scrape for ${stockCode} today - open price set to ${priceData.ltp}`);
+          } else {
+            // Not first scrape - preserve existing open price
+            priceData.open = existingPrice.open;
+          }
+          
+          // 5. Upsert price data
           await StockPrice.findOneAndUpdate(
             { stockId: stockMetadata._id, date: bangladeshDate },
             priceData,
